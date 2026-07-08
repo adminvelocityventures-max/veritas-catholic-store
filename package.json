@@ -1,0 +1,33 @@
+{
+  "name": "veritas-catholic-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/scrape-hmh.mjs --if-missing",
+    "dev": "next dev",
+    "prebuild": "node scripts/scrape-hmh.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "scrape": "node scripts/scrape-hmh.mjs"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^9.9.0",
+    "@supabase/supabase-js": "^2.110.1",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "server-only": "^0.0.1",
+    "stripe": "^22.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
