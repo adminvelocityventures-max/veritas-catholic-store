@@ -28,6 +28,21 @@ function retailPrice(base) {
   return Math.round(charm * 100) / 100; // clean up float dust
 }
 
+// HMH's feed mixes wholesale rosary-making supplies (loose sterling/crystal
+// beads sold by the box) in with finished products. Those carry bulk prices and
+// look out of place in a consumer storefront, so we exclude them. A finished
+// rosary is either typed with a real category (e.g. "Rosaries- Sterling Silver
+// Cross and Center") or names a center/crucifix/finding; a bulk component is an
+// untyped item whose title is just beads.
+function isBulkComponent(title = "", productType = "") {
+  const t = title.toLowerCase();
+  if (!/\bbeads?\b/.test(t)) return false;
+  if (productType && productType.trim()) return false; // typed = finished piece
+  const finishedCue =
+    /(rosary|rosaries|crucifix|\bcross\b|center|\bctr\b|\bcfx\b|our\s*father|o\.f\.|medal|pendant|bracelet|necklace|\bwith\b|\bw\/)/i;
+  return !finishedCue.test(t);
+}
+
 // Map a granular Shopify product_type to a customer-facing top-level category.
 function categorize(productType = "", title = "") {
   const t = `${productType} ${title}`.toLowerCase();
@@ -78,6 +93,7 @@ async function main() {
 
   const seen = new Set();
   const products = [];
+  let hiddenBulk = 0;
   for (const p of raw) {
     if (seen.has(p.id)) continue;
     seen.add(p.id);
@@ -86,6 +102,10 @@ async function main() {
     const baseCompareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
     const images = (p.images ?? []).map((img) => img.src).filter(Boolean);
     if (basePrice <= 0 || images.length === 0) continue; // skip incomplete records
+    if (isBulkComponent(p.title, p.product_type)) {
+      hiddenBulk++;
+      continue; // exclude wholesale bead-making supplies
+    }
     // Apply the retail markup to both the price and the (proportional) "was" price.
     const price = retailPrice(basePrice);
     const compareAtPrice =
@@ -120,7 +140,7 @@ async function main() {
   writeFileSync(join(DATA_DIR, "products.json"), JSON.stringify(products));
   writeFileSync(join(DATA_DIR, "categories.json"), JSON.stringify(categories, null, 2));
 
-  console.log(`\nWrote ${products.length} products across ${categories.length} categories:`);
+  console.log(`\nWrote ${products.length} products across ${categories.length} categories (hid ${hiddenBulk} bulk supplies):`);
   for (const c of categories) console.log(`  ${c.name.padEnd(24)} ${c.count}`);
 }
 

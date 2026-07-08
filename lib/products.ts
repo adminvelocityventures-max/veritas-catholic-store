@@ -29,11 +29,21 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-  // Prefer discounted, in-stock, image-rich items for the storefront hero rows.
-  return [...ALL_PRODUCTS]
-    .filter((p) => p.available && p.images.length > 1)
-    .sort((a, b) => (b.compareAtPrice ? 1 : 0) - (a.compareAtPrice ? 1 : 0) || b.price - a.price)
-    .slice(0, limit);
+  // Show an even spread across the mid-band of the price range (roughly the
+  // 15th–85th percentile) so the storefront hero reads as balanced rather than
+  // leading with either bargain trinkets or the priciest showpieces.
+  const pool = ALL_PRODUCTS.filter((p) => p.available && p.images.length > 1).sort(
+    (a, b) => a.price - b.price,
+  );
+  if (pool.length <= limit) return pool;
+  const lo = Math.floor(pool.length * 0.15);
+  const hi = Math.floor(pool.length * 0.85);
+  const span = hi - lo;
+  const picks: Product[] = [];
+  for (let i = 0; i < limit; i++) {
+    picks.push(pool[lo + Math.floor((i * span) / (limit - 1))]);
+  }
+  return picks;
 }
 
 export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
@@ -94,14 +104,19 @@ function sortProducts(products: Product[], sort: ProductQuery["sort"]): Product[
     case "name":
       return copy.sort((a, b) => a.title.localeCompare(b.title));
     case "featured":
-    default:
-      // In-stock first, then discounted, then by price descending.
+    default: {
+      // Balanced ordering: in-stock first, then closest to the median price so
+      // pages lead with typical mid-range pieces rather than the most (or least)
+      // expensive. Deterministic, so pagination stays stable.
+      const prices = copy.map((p) => p.price).sort((a, b) => a - b);
+      const median = prices.length ? prices[Math.floor(prices.length / 2)] : 0;
       return copy.sort(
         (a, b) =>
           Number(b.available) - Number(a.available) ||
-          (b.compareAtPrice ? 1 : 0) - (a.compareAtPrice ? 1 : 0) ||
-          b.price - a.price,
+          Math.abs(a.price - median) - Math.abs(b.price - median) ||
+          a.price - b.price,
       );
+    }
   }
 }
 
