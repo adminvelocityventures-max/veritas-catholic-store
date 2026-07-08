@@ -8,9 +8,9 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
   const safe = images.length > 0 ? images : [];
 
   return (
-    <div className="flex flex-col-reverse sm:flex-row gap-4">
+    <div className="flex flex-col-reverse sm:flex-row gap-4 items-start">
       {safe.length > 1 && (
-        <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-visible">
+        <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-visible shrink-0">
           {safe.map((src, i) => (
             <button
               key={src}
@@ -25,7 +25,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
           ))}
         </div>
       )}
-      <div className="relative flex-1 aspect-square bg-cream border border-line">
+      <div className="relative w-full flex-1 min-w-0 aspect-square bg-cream border border-line">
         {safe[active] && (
           <Image
             src={safe[active]}
