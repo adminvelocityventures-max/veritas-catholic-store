@@ -3,6 +3,9 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { saveOrder, markOrderStatus } from "@/lib/orders";
 
+// Stripe's signature check needs the Node runtime (not Edge).
+export const runtime = "nodejs";
+
 // Stripe requires the raw request body to verify the webhook signature.
 export async function POST(request: Request) {
   const stripe = getStripe();
@@ -19,7 +22,7 @@ export async function POST(request: Request) {
   const payload = await request.text();
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(payload, signature, webhookSecret);
   } catch (err) {
     console.error("[webhook] Signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
