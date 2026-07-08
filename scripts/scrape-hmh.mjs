@@ -18,6 +18,16 @@ if (process.argv.includes("--if-missing") && existsSync(join(DATA_DIR, "products
 const SOURCE = "https://www.hmhreligious.com";
 const UA = "Mozilla/5.0 (compatible; VeritasCatalogSync/1.0)";
 
+// Retail pricing: mark HMH's listed price up by a flat percentage, then round
+// up to a charm price ending in .99 (e.g. base $124.37 -> ×1.5 = $186.56 -> $186.99).
+const MARKUP = 1.5; // 50% markup
+
+function retailPrice(base) {
+  const marked = base * MARKUP;
+  const charm = Math.ceil(marked) - 0.01; // always ends in .99
+  return Math.round(charm * 100) / 100; // clean up float dust
+}
+
 // Map a granular Shopify product_type to a customer-facing top-level category.
 function categorize(productType = "", title = "") {
   const t = `${productType} ${title}`.toLowerCase();
@@ -72,10 +82,14 @@ async function main() {
     if (seen.has(p.id)) continue;
     seen.add(p.id);
     const variant = (p.variants ?? [])[0] ?? {};
-    const price = parseFloat(variant.price ?? "0");
-    const compareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
+    const basePrice = parseFloat(variant.price ?? "0");
+    const baseCompareAt = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
     const images = (p.images ?? []).map((img) => img.src).filter(Boolean);
-    if (price <= 0 || images.length === 0) continue; // skip incomplete records
+    if (basePrice <= 0 || images.length === 0) continue; // skip incomplete records
+    // Apply the retail markup to both the price and the (proportional) "was" price.
+    const price = retailPrice(basePrice);
+    const compareAtPrice =
+      baseCompareAt && baseCompareAt > basePrice ? retailPrice(baseCompareAt) : null;
     products.push({
       id: String(p.id),
       handle: p.handle,
@@ -83,7 +97,7 @@ async function main() {
       description: stripHtml(p.body_html),
       descriptionHtml: p.body_html ?? "",
       price,
-      compareAtPrice: compareAt && compareAt > price ? compareAt : null,
+      compareAtPrice,
       sku: variant.sku ?? "",
       category: categorize(p.product_type, p.title),
       productType: p.product_type ?? "",
