@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+/*
+  Veritas Catholic — design system
+  An elevated, reverent boutique aesthetic: ivory paper, oxblood liturgical
+  red, antique gold, deep ink. Serif display type paired with a quiet sans.
+*/
+:root {
+  --paper: #faf7f0;
+  --paper-2: #f3eee2;
+  --ink: #211b16;
+  --ink-soft: #574d43;
+  --ink-faint: #8a7f72;
+  --line: #e3dccb;
+  --oxblood: #6b1f1f;
+  --oxblood-deep: #4a1414;
+  --gold: #a9873f;
+  --gold-soft: #c2a76a;
+  --cream: #fffdf8;
+}
+
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-oxblood: var(--oxblood);
+  --color-oxblood-deep: var(--oxblood-deep);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --font-serif: var(--font-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display headings use the serif face. */
+.font-display {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* Small-caps eyebrow label used across sections. */
+.eyebrow {
+  font-family: var(--font-sans), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--gold);
+}
+
+/* Thin decorative rule with a centered diamond. */
+.rule-diamond {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--gold-soft);
+}
+.rule-diamond::before,
+.rule-diamond::after {
+  content: "";
+  height: 1px;
+  width: 3rem;
+  background: var(--gold-soft);
+  opacity: 0.6;
+}
+
+/* Elegant link underline that grows on hover. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 0;
+  background: currentColor;
+  transition: width 0.3s ease;
+}
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Subtle rise on product cards. */
+.card-rise {
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.4s ease;
+}
+.card-rise:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px -24px rgba(33, 27, 22, 0.45);
+}
+
+/* Fade-up entrance for stacked sections. */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fadeUp 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+::selection {
+  background: var(--oxblood);
+  color: var(--cream);
+}
+
+/* Quiet, refined scrollbar. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-soft) transparent;
+}
